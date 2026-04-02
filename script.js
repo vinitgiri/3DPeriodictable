@@ -187,6 +187,11 @@ createTimer({
   }
 });
 
+// Helper for scale based on filter
+function getScaleFactor($el) {
+  return $el.classList.contains('filtered-out') ? 'scale(0.5)' : 'scale(1)';
+}
+
 // The different layout tranform
 const transformLayout = {
   table: () => {
@@ -194,8 +199,8 @@ const transformLayout = {
     pointer.rotateX = 15;
     pointer.rotateY = 20;
     cards.forEach($el => {
-      $el.style.opacity = 1;
-      $el.style.transform = $el.classList.contains('is-expanded') ? 'translateZ(50px)' : 'translateZ(10px)';
+      $el.style.opacity = $el.classList.contains('filtered-out') ? 0.1 : 1;
+      $el.style.transform = ($el.classList.contains('is-expanded') ? 'translateZ(50px)' : 'translateZ(10px)') + ' ' + getScaleFactor($el);
     });
   },
   sphere: () => {
@@ -212,7 +217,8 @@ const transformLayout = {
       const z = radius * sinPhi * Math.sin(theta);
       const yaw = Math.atan2(x, z);
       const pitch = -Math.atan2(y, Math.hypot(x, z));
-      $el.style.transform = `translate3d(${x}px, ${y}px, ${z}px) rotateY(${yaw}rad) rotateX(${pitch}rad) translateZ(${offsetZ}px)`;
+      $el.style.opacity = $el.classList.contains('filtered-out') ? 0.1 : 1;
+      $el.style.transform = `translate3d(${x}px, ${y}px, ${z}px) rotateY(${yaw}rad) rotateX(${pitch}rad) translateZ(${offsetZ}px) ${getScaleFactor($el)}`;
     });
   },
   helix: () => {
@@ -230,7 +236,8 @@ const transformLayout = {
       const z = radius * Math.cos(theta);
       const yaw = Math.atan2(x, z);
       const pitch = -Math.atan2(y, Math.hypot(x, z) * 2);
-      $el.style.transform = `translate3d(${x}px, ${y}px, ${z}px) rotateY(${yaw}rad) rotateX(${pitch}rad) translateZ(${offsetZ}px)`;
+      $el.style.opacity = $el.classList.contains('filtered-out') ? 0.1 : 1;
+      $el.style.transform = `translate3d(${x}px, ${y}px, ${z}px) rotateY(${yaw}rad) rotateX(${pitch}rad) translateZ(${offsetZ}px) ${getScaleFactor($el)}`;
     });
   },
   grid: () => {
@@ -251,14 +258,15 @@ const transformLayout = {
       const x = (col - (cols - 1) / 2) * colGap;
       const y = ((rows - 1) / 2 - row) * rowGap;
       const z = offsetZ + ((layer - (layers - 1) / 2) * depthGap);
-      $el.style.transform = `translate3d(${x}px, ${y}px, ${z}px)`;
+      $el.style.opacity = $el.classList.contains('filtered-out') ? 0.1 : 1;
+      $el.style.transform = `translate3d(${x}px, ${y}px, ${z}px) ${getScaleFactor($el)}`;
     });
   },
   random: () => {
     // The table view use CSS grid and has no special tranforms except for a selected element
     pointer.rotateX = 15;
     pointer.rotateY = 20;
-    utils.set(cards, { x: () => utils.random(-500, 500), y: () => utils.random(-500, 500), z: () => utils.random(-500, 500)})
+    utils.set(cards, { x: () => utils.random(-500, 500), y: () => utils.random(-500, 500), z: () => utils.random(-500, 500), opacity: ($el) => $el.classList.contains('filtered-out') ? 0.1 : 1 })
   },
 };
 
@@ -287,32 +295,181 @@ document.addEventListener('click', event => {
     return;
   }
   const $card = event.target.closest('#scene-content .element');
-  const shouldExpand = $card && !$card.classList.contains('is-expanded');
-  elementsLayout.update(() => {
-    cards.forEach($el => $el.classList.remove('is-expanded'));
-    if (shouldExpand) $card.classList.add('is-expanded');
-    transformLayout[$sceneContent.dataset.layout]();
-  },{
-    ease: spring({ bounce: .2, duration: 350 }),
-  });
+  if ($card && !$card.classList.contains('filtered-out')) {
+    const number = $card.querySelector('.element-number').textContent;
+    const symbol = $card.querySelector('.element-symbol').textContent;
+    const title = $card.querySelector('.element-title').textContent;
+    const color = String($card.dataset.color);
+    
+    let mass = 'Unknown';
+    const descEl = $card.querySelector('.element-description');
+    if (descEl) {
+      const massMatch = descEl.innerHTML.match(/Atomic mass:\s*(.*?)</);
+      if (massMatch) mass = massMatch[1];
+    }
+
+    const categoryMap = {
+      '0': 'Reactive Non-metal', '1': 'Noble Gas', '2': 'Alkali Metal', '3': 'Alkaline Earth Metal',
+      '4': 'Metalloid', '5': 'Post-transition Metal', '6': 'Transition Metal', '7': 'Lanthanide', '8': 'Actinide', '9': 'Unknown Properties', '10': 'Halogen'
+    };
+    
+    document.getElementById('modal-symbol').textContent = symbol;
+    // Set a matching color from the element color mappings roughly, using the map variable or generic color
+    document.getElementById('modal-symbol').className = 'modal-symbol';
+    document.getElementById('modal-symbol').setAttribute('data-color', color);
+    
+    document.getElementById('modal-name').textContent = title;
+    document.getElementById('modal-number').textContent = `Atomic Number: ${number}`;
+    document.getElementById('modal-category').textContent = categoryMap[color] || 'Unknown';
+    document.getElementById('modal-mass').textContent = mass;
+    document.getElementById('modal-electron').textContent = generateElectronConfig(parseInt(number));
+    document.getElementById('modal-desc').textContent = `${title} is a ${categoryMap[color] ? categoryMap[color].toLowerCase() : 'chemical element'}. Essential components like ${title} have a variety of scientific and industrial applications.`;
+
+    document.getElementById('element-modal').classList.add('is-visible');
+    return;
+  }
 });
 
 document.addEventListener('keydown', event => {
-  if (event.key !== 'Escape') return;
-  const hasExpandedCard = cards.some($el => $el.classList.contains('is-expanded'));
-  if (!hasExpandedCard) return;
-  elementsLayout.update(() => {
-    cards.forEach($el => $el.classList.remove('is-expanded'));
-    transformLayout[$sceneContent.dataset.layout]();
-  },{
-    ease: spring({ bounce: .3, duration: 350 }),
-  });
+  if (event.key === 'Escape') {
+    document.getElementById('element-modal').classList.remove('is-visible');
+  }
 });
 
+document.getElementById('modal-close')?.addEventListener('click', () => {
+  document.getElementById('element-modal').classList.remove('is-visible');
+});
+
+// Helper for electron configuration
+function generateElectronConfig(atomicNumber) {
+  const orbitals = [
+    { n: 1, l: 's', max: 2 }, { n: 2, l: 's', max: 2 }, { n: 2, l: 'p', max: 6 },
+    { n: 3, l: 's', max: 2 }, { n: 3, l: 'p', max: 6 }, { n: 4, l: 's', max: 2 },
+    { n: 3, l: 'd', max: 10 }, { n: 4, l: 'p', max: 6 }, { n: 5, l: 's', max: 2 },
+    { n: 4, l: 'd', max: 10 }, { n: 5, l: 'p', max: 6 }, { n: 6, l: 's', max: 2 },
+    { n: 4, l: 'f', max: 14 }, { n: 5, l: 'd', max: 10 }, { n: 6, l: 'p', max: 6 },
+    { n: 7, l: 's', max: 2 }, { n: 5, l: 'f', max: 14 }, { n: 6, l: 'd', max: 10 },
+    { n: 7, l: 'p', max: 6 }
+  ];
+  
+  const nobleGases = [
+    { z: 118, sym: '[Og]' }, { z: 86, sym: '[Rn]' }, { z: 54, sym: '[Xe]' },
+    { z: 36, sym: '[Kr]' }, { z: 18, sym: '[Ar]' }, { z: 10, sym: '[Ne]' }, { z: 2, sym: '[He]' }
+  ];
+  
+  if (atomicNumber === 24) return '[Ar] 4s1 3d5';
+  if (atomicNumber === 29) return '[Ar] 4s1 3d10';
+  if (atomicNumber === 42) return '[Kr] 5s1 4d5';
+  if (atomicNumber === 47) return '[Kr] 5s1 4d10';
+
+  let config = [];
+  let remaining = atomicNumber;
+  const core = nobleGases.find(ng => ng.z < atomicNumber);
+
+  if (core) {
+    config.push(core.sym);
+    remaining -= core.z;
+    let coreRemaining = core.z;
+    let startIdx = 0;
+    for (let i = 0; i < orbitals.length; i++) {
+        if (coreRemaining <= 0) { startIdx = i; break; }
+        coreRemaining -= orbitals[i].max;
+    }
+    for (let i = startIdx; i < orbitals.length; i++) {
+      if (remaining <= 0) break;
+      let electrons = Math.min(orbitals[i].max, remaining);
+      config.push(`${orbitals[i].n}${orbitals[i].l}${electrons}`);
+      remaining -= electrons;
+    }
+  } else {
+    for (let orb of orbitals) {
+      if (remaining <= 0) break;
+      let electrons = Math.min(orb.max, remaining);
+      config.push(`${orb.n}${orb.l}${electrons}`);
+      remaining -= electrons;
+    }
+  }
+
+  return config.join(' ');
+}
+
 // Intro animation
+
+const themeToggle = document.getElementById('theme-toggle');
+let currentTheme = localStorage.getItem('theme') || 'dark';
+
+if (currentTheme === 'light') {
+  document.documentElement.classList.add('light-theme');
+  if (themeToggle) themeToggle.textContent = '🌙 Dark Theme';
+} else {
+  if (themeToggle) themeToggle.textContent = '☀️ Light Theme';
+}
+
+themeToggle?.addEventListener('click', () => {
+  if (document.documentElement.classList.contains('light-theme')) {
+    document.documentElement.classList.remove('light-theme');
+    localStorage.setItem('theme', 'dark');
+    themeToggle.textContent = '☀️ Light Theme';
+  } else {
+    document.documentElement.classList.add('light-theme');
+    localStorage.setItem('theme', 'light');
+    themeToggle.textContent = '🌙 Dark Theme';
+  }
+});
 
 transformLayout.random();
 utils.set(cards, { opacity: 0 });
 elementsLayout.update(() => transformLayout.table(), {
   delay: stagger([0, 750], { from: 'random' })
 });
+
+// Search and Filter Logic
+function applyFilters() {
+  const searchInput = document.getElementById('search-input');
+  const categoryFilter = document.getElementById('category-filter');
+  if (!searchInput || !categoryFilter) return;
+
+  const searchTerm = searchInput.value.toLowerCase();
+  const category = categoryFilter.value;
+
+  const metalColors = ['2', '3', '5', '6', '7', '8', '9'];
+  const nonMetalColors = ['0', '4', '10'];
+  const nobleGasColors = ['1'];
+
+  cards.forEach($el => {
+    const symbol = $el.querySelector('.element-symbol').textContent.toLowerCase();
+    const name = $el.querySelector('.element-title').textContent.toLowerCase();
+    const number = $el.querySelector('.element-number').textContent;
+    const color = String($el.dataset.color);
+
+    let matchesSearch = false;
+    if (searchTerm === '') {
+      matchesSearch = true;
+    } else {
+      matchesSearch = symbol.includes(searchTerm) || name.includes(searchTerm) || number === searchTerm;
+    }
+
+    let matchesCategory = true;
+    if (category === 'metal') matchesCategory = metalColors.includes(color);
+    else if (category === 'non-metal') matchesCategory = nonMetalColors.includes(color);
+    else if (category === 'noble-gas') matchesCategory = nobleGasColors.includes(color);
+
+    if (matchesSearch && matchesCategory) {
+      $el.classList.remove('filtered-out');
+      $el.style.pointerEvents = 'auto'; // ensure clickability
+    } else {
+      $el.classList.add('filtered-out');
+      $el.classList.remove('is-expanded');
+      $el.style.pointerEvents = 'none'; // prevent clicks on disabled elements
+    }
+  });
+
+  elementsLayout.update(() => {
+    transformLayout[$sceneContent.dataset.layout || 'table']();
+  }, {
+    ease: spring({ bounce: .3, duration: 450 }),
+  });
+}
+
+document.getElementById('search-input')?.addEventListener('input', applyFilters);
+document.getElementById('category-filter')?.addEventListener('change', applyFilters);

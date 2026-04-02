@@ -11,19 +11,54 @@
 
 <body>
   <div class="controls">
+    <div class="controls-group filter br" style="margin-right: 1rem;">
+      <input type="text" id="search-input" placeholder="Search element..." autocomplete="off">
+      <select id="category-filter">
+        <option value="all">All Categories</option>
+        <option value="metal">Metals</option>
+        <option value="non-metal">Non-Metals</option>
+        <option value="noble-gas">Noble Gases</option>
+      </select>
+    </div>
     <div class="controls-group display br">
       <button class="is-active toggle" id="table">table</button>
       <button class="toggle" id="sphere">sphere</button>
       <button class="toggle" id="helix">helix</button>
       <button class="toggle" id="grid">grid</button>
     </div>
+    <div class="controls-group theme br" style="margin-left: 1rem;">
+      <button id="theme-toggle">🌓 Theme</button>
+    </div>
   </div>
   <div id="scene">
     <div id="scene-content" data-layout="table"></div>
   </div>
-  <div class="credits">
-    3D transform calculations ported from this three.js <a href="https://threejs.org/examples/css3d_periodictable.html"
-      target="_blank" rel="noopener">demo</a>.
+  <div class="credits modern-footer">
+    <div class="footer-left">
+      &copy; 2026 Vinit Giri
+    </div>
+    <div class="footer-center">
+      <a href="https://vinit-portfolio37.vercel.app/" target="_blank" rel="noopener" class="portfolio-link" aria-label="Portfolio">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+        </svg>
+        <span>Portfolio</span>
+      </a>
+    </div>
+    <div class="footer-right social-links">
+      <a href="https://github.com/vinitgiri" target="_blank" rel="noopener" class="social-icon" aria-label="GitHub">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+          <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.379.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.161 22 16.416 22 12c0-5.523-4.477-10-10-10z"/>
+        </svg>
+      </a>
+      <a href="https://www.linkedin.com/in/vinitgiri2007/" target="_blank" rel="noopener" class="social-icon" aria-label="LinkedIn">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+          <path d="M19 0h-14c-2.76 0-5 2.24-5 5v14c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24 5-5v-14c0-2.76-2.24-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+        </svg>
+      </a>
+    </div>
   </div>
   <template id="element">
     <button class="element" data-color="0">
@@ -33,14 +68,38 @@
       <div class="element-description"></div>
     </button>
   </template>
+  <div id="element-modal" class="modal-overlay">
+    <div class="modal-content br">
+      <button id="modal-close" class="modal-close">&times;</button>
+      <div class="modal-header">
+        <div class="modal-symbol" id="modal-symbol"></div>
+        <div class="modal-title">
+          <h2 id="modal-name"></h2>
+          <span class="modal-number" id="modal-number"></span>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="modal-row">
+          <span class="modal-label">Category:</span>
+          <span class="modal-value" id="modal-category"></span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-label">Atomic Mass:</span>
+          <span class="modal-value" id="modal-mass"></span>
+        </div>
+        <div class="modal-row">
+          <span class="modal-label">Electron Config:</span>
+          <span class="modal-value" id="modal-electron"></span>
+        </div>
+        <div class="modal-desc">
+          <span class="modal-label">Description & Uses:</span>
+          <p class="modal-value" id="modal-desc"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="./script.js"></script>
 
 </body>
-<div class="credits">
-  3D transform calculations ported from this three.js <a href="https://threejs.org/examples/css3d_periodictable.html"
-    target="_blank" rel="noopener">demo</a>.<br>
-  <span class="vishesh-footer">Made with ❤️ by <a href="https://instagram.com/codingwithvishesh"
-      target="_blank" rel="noopener">codingwithvishesh</a></span>
-</div>
-
 </html>

@@ -151,7 +151,7 @@ This ensures a **realistic and educational visualization**.
 
 ---
 
-## 🤝 Contributing
+## 🤝 Contributing...
 
 Contributions are welcome!
 

@@ -204,4 +204,4 @@ If you like this project:
 > 🚀 *Turning chemistry into an interactive 3D experience!*
 >
 > i create a 3D ball like periodic table
-> #D periodic table is OG
+

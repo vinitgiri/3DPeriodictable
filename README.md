@@ -203,5 +203,5 @@ If you like this project:
 
 > 🚀 *Turning chemistry into an interactive 3D experience!*
 >
->
+>3D peroidic table is good
 

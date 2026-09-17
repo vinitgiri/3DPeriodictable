@@ -186,8 +186,6 @@ Made with ❤️ and passion for learning & innovation.
 * Inspired by Three.js official demos
 * Thanks to open-source community
 
----
-
 ## ⭐ Support
 
 If you like this project:

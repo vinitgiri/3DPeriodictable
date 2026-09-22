@@ -197,7 +197,6 @@ If you like this project:
 * * 🌐 Portfolio: https://vinit-portfolio37.vercel.app/
 * 💻 GitHub: https://github.com/vinitgiri
 
----
 
 > 🚀 *Turning chemistry into an interactive 3D experience!*
 

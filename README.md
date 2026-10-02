@@ -10,8 +10,6 @@ This project allows users to explore chemical elements in multiple visually appe
 🔗 **Portfolio / Live Project:**
 👉 https://vinit-portfolio37.vercel.app/
 
----
-
 ## ✨ Features
 
 ### 🎯 Core Features

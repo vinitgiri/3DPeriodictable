@@ -3,8 +3,6 @@
 An advanced and interactive **3D Periodic Table Web Application** built using modern web technologies.
 This project allows users to explore chemical elements in multiple visually appealing layouts such as **Table, Sphere, Helix, and Grid**, with smooth animations and real-time interaction.
 
----
-
 ## 🚀 Live Demo
 
 🔗 **Portfolio / Live Project:**
